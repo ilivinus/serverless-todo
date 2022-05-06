@@ -5,5 +5,9 @@ export interface ITodoRepository {
   list(): Promise<Todo[]>;
   delete(id: string): Promise<any>;
   find(id: string): Promise<Todo>;
-  update(id: string, completed?: boolean, label?: string): Promise<Todo>;
+  update(
+    id: string,
+    completed: boolean | unknown,
+    label: string | unknown
+  ): Promise<Todo>;
 }

@@ -1,60 +1,81 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from "@libs/api-gateway";
 import { formatJSONResponse } from "@libs/api-gateway";
 import { middyfy } from "@libs/lambda";
+import { APIGatewayProxyEvent } from "aws-lambda";
+import { DynamoDB } from "aws-sdk";
 
-import schema from "./create.schema";
+import createSchema from "./schema/create.schema";
+import querySchema from "./schema/query.schema";
+import updateSchema from "./schema/update.schema";
+import { TodoRepository } from "./todo.repository";
+import { TodoService } from "./todo.service";
+
 /**
  * CRUD operation on todo
  * @param event
  * @returns
  */
-const createHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const dynamoDB = new DynamoDB.DocumentClient();
+const todoRepository = new TodoRepository(
+  dynamoDB,
+  process.env.DYNAMODB_TODO_TABLE
+);
+const todoService = new TodoService(todoRepository);
+
+const createHandler: ValidatedEventAPIGatewayProxyEvent<
+  typeof createSchema
+> = async (event) => {
+  const todo = await todoService.newTodo(event.body.label);
   return formatJSONResponse({
-    message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
+    todo,
     event,
   });
 };
 
 export const create = middyfy(createHandler);
 
-const getHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const getHandler: ValidatedEventAPIGatewayProxyEvent<
+  typeof querySchema
+> = async (event) => {
+  const todo = await todoService.newTodo(event.pathParameters.id);
   return formatJSONResponse({
-    message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
+    todo,
     event,
   });
 };
 
 export const get = middyfy(getHandler);
 
-const updateHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const updateHandler: ValidatedEventAPIGatewayProxyEvent<
+  typeof updateSchema
+> = async (event) => {
+  const todo = await todoService.update(
+    event.body.id,
+    event.body.completed ? (event.body.completed as boolean) : undefined,
+    event.body.label ? (event.body.label as string) : undefined
+  );
   return formatJSONResponse({
-    message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
+    todo,
     event,
   });
 };
 export const update = middyfy(updateHandler);
 
-const deleteHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const deleteHandler: ValidatedEventAPIGatewayProxyEvent<
+  typeof querySchema
+> = async (event) => {
+  const todo = await todoService.remove(event.pathParameters.id);
   return formatJSONResponse({
-    message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
+    todo,
     event,
   });
 };
 export const remove = middyfy(deleteHandler);
 
-const listHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const listHandler = async (event: APIGatewayProxyEvent) => {
+  const todos = await todoService.list();
   return formatJSONResponse({
-    message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
+    todos,
     event,
   });
 };

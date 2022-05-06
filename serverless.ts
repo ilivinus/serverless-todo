@@ -1,5 +1,5 @@
 import type { AWS } from "@serverless/typescript";
-import { handlerPath } from "@libs/handler-resolver";
+import { default as handlers } from "@functions/todo";
 
 const serverlessConfiguration: AWS = {
   org: "ilivinus",
@@ -40,63 +40,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: {
-    createTodo: {
-      handler: `${handlerPath(__dirname)}/src/todo/todo.handler.create`,
-      events: [
-        {
-          httpApi: {
-            method: "post",
-            path: "todo",
-          },
-        },
-      ],
-    },
-    getTodo: {
-      handler: `${handlerPath(__dirname)}/src/todo/todo.handler.get`,
-      events: [
-        {
-          httpApi: {
-            method: "get",
-            path: "todo/{id}",
-          },
-        },
-      ],
-    },
-    updateTodo: {
-      handler: `${handlerPath(__dirname)}/src/todo/todo.handler.update`,
-      events: [
-        {
-          httpApi: {
-            method: "update",
-            path: "todo",
-          },
-        },
-      ],
-    },
-    deleteTodo: {
-      handler: `${handlerPath(__dirname)}/src/todo/todo.handler.remove`,
-      events: [
-        {
-          httpApi: {
-            method: "delete",
-            path: "todo/{id}",
-          },
-        },
-      ],
-    },
-    listTodo: {
-      handler: `${handlerPath(__dirname)}/src/todo/todo.handler.list`,
-      events: [
-        {
-          httpApi: {
-            method: "get",
-            path: "todo",
-          },
-        },
-      ],
-    },
-  },
+  functions: { ...handlers },
   package: { individually: true },
   custom: {
     esbuild: {
