@@ -1,13 +1,15 @@
 "use-strict";
 import { DynamoDB } from "aws-sdk";
 import * as uuid from "uuid";
+import { Todo } from "./dto/todo.dto";
+import { ITodoRepository } from "./interface/todo-repository.interface";
 /**
  * new TodoRepository(
   new DynamoDB.DocumentClient(),
   process.env.DYNAMODB_TODO_TABLE
 );
  */
-export class TodoRepository {
+export class TodoRepository implements ITodoRepository {
   private dynamoDb: DynamoDB.DocumentClient;
 
   private DB_TABLE: string;
@@ -15,9 +17,9 @@ export class TodoRepository {
     this.dynamoDb = dynamo;
     this.DB_TABLE = table;
   }
-  create(label: string) {
+  async create(label: string) {
     const timestamp = new Date();
-    const params = {
+    const params: DynamoDB.DocumentClient.PutItemInput = {
       TableName: this.DB_TABLE,
       Item: {
         id: uuid.v4(),
@@ -26,14 +28,17 @@ export class TodoRepository {
         updatedAt: timestamp,
         createdAt: timestamp,
       },
+      ReturnValues: "ALL_NEW",
     };
-    return this.dynamoDb.put(params).promise();
+    await this.dynamoDb.put(params).promise();
+    return params.Item as Todo;
   }
-  list() {
+  async list() {
     const param = {
       TableName: this.DB_TABLE,
     };
-    return this.dynamoDb.query(param).promise();
+    const todos = await this.dynamoDb.query(param).promise();
+    return todos.Items as Todo[];
   }
   delete(id: string) {
     const params = {
@@ -44,27 +49,30 @@ export class TodoRepository {
     };
     return this.dynamoDb.delete(params).promise();
   }
-  find(id: string) {
+  async find(id: string) {
     const params = {
       TableName: this.DB_TABLE,
       Key: {
         id,
       },
     };
-    return this.dynamoDb.get(params).promise();
+    const todo = await this.dynamoDb.get(params).promise();
+    return todo.Item as Todo;
   }
-  update(id: string, label: string, completed: boolean) {
+  async update(id: string, completed: boolean) {
     const params: DynamoDB.DocumentClient.UpdateItemInput = {
       TableName: this.DB_TABLE,
       Key: { id },
-      UpdateExpression: "SET completed = :c, label = :l, updatedAt = :u",
+      UpdateExpression: "SET completed = :c,  updatedAt = :u",
       ExpressionAttributeNames: {},
       ExpressionAttributeValues: {
         ":c": completed,
-        ":l": label,
+        // ":l": label,
         ":u": new Date(),
       },
+      ReturnValues: "ALL_NEW",
     };
-    return this.dynamoDb.update(params).promise();
+    const updatedTodo = await this.dynamoDb.update(params).promise();
+    return updatedTodo.Attributes as Todo;
   }
 }
