@@ -59,16 +59,29 @@ export class TodoRepository implements ITodoRepository {
     const todo = await this.dynamoDb.get(params).promise();
     return todo.Item as Todo;
   }
-  async update(id: string, completed: boolean) {
+  async update(
+    id: string,
+    completed: boolean | undefined,
+    label: string | undefined
+  ) {
+    let expressionAttributeValues: { [key: string]: string | boolean } = {};
+    const updateExpression = [];
+    if (completed !== undefined) {
+      updateExpression.push("completed = :c");
+      expressionAttributeValues = { ":c": completed };
+    }
+    if (label !== undefined) {
+      expressionAttributeValues = { ...expressionAttributeValues, ":l": label };
+      updateExpression.push("label = :l");
+    }
+
     const params: DynamoDB.DocumentClient.UpdateItemInput = {
       TableName: this.DB_TABLE,
       Key: { id },
-      UpdateExpression: "SET completed = :c,  updatedAt = :u",
-      ExpressionAttributeNames: {},
+      UpdateExpression: `SET updatedAt = :u, ${updateExpression.join(",")}`,
       ExpressionAttributeValues: {
-        ":c": completed,
-        // ":l": label,
         ":u": new Date(),
+        ...expressionAttributeValues,
       },
       ReturnValues: "ALL_NEW",
     };
