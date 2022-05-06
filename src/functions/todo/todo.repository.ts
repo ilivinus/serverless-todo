@@ -31,7 +31,7 @@ export class TodoRepository implements ITodoRepository {
       ReturnValues: "ALL_NEW",
     };
     await this.dynamoDb.put(params).promise();
-    return params.Item as Todo;
+    return <Todo>params.Item;
   }
   async list() {
     const param = {
@@ -57,7 +57,7 @@ export class TodoRepository implements ITodoRepository {
       },
     };
     const todo = await this.dynamoDb.get(params).promise();
-    return todo.Item as Todo;
+    return <Todo>todo.Item;
   }
   async update(
     id: string,
@@ -86,6 +86,6 @@ export class TodoRepository implements ITodoRepository {
       ReturnValues: "ALL_NEW",
     };
     const updatedTodo = await this.dynamoDb.update(params).promise();
-    return updatedTodo.Attributes as Todo;
+    return <Todo>updatedTodo.Attributes;
   }
 }
