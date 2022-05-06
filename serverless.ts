@@ -17,6 +17,26 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
       NODE_OPTIONS: "--enable-source-maps --stack-trace-limit=1000",
+      DYNAMODB_TODO_TABLE: "${self:service}-${sls:stage}",
+    },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: "Allow",
+            Action: [
+              "dynamodb:Scan",
+              "dynamodb:Query",
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:UpdateItem",
+              "dynamodb:DeleteItem",
+            ],
+            Resource:
+              "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TODO_TABLE}",
+          },
+        ],
+      },
     },
   },
   // import the function via paths
@@ -38,7 +58,7 @@ const serverlessConfiguration: AWS = {
         {
           httpApi: {
             method: "get",
-            path: "todo",
+            path: "todo/{id}",
           },
         },
       ],
@@ -60,7 +80,7 @@ const serverlessConfiguration: AWS = {
         {
           httpApi: {
             method: "delete",
-            path: "todo",
+            path: "todo/{id}",
           },
         },
       ],
@@ -71,7 +91,7 @@ const serverlessConfiguration: AWS = {
         {
           httpApi: {
             method: "get",
-            path: "todos",
+            path: "todo",
           },
         },
       ],
@@ -88,6 +108,34 @@ const serverlessConfiguration: AWS = {
       define: { "require.resolve": undefined },
       platform: "node",
       concurrency: 10,
+    },
+  },
+  resources: {
+    Resources: {
+      TodoTable: {
+        Type: "AWS::DynamoDB::Table",
+        Properties: {
+          TableName: "${self:provider.environment.DYNAMODB_TODO_TABLE}",
+          AttributeDefinitions: [
+            {
+              AttributeName: "id",
+              AttributeType: "S",
+            },
+            {
+              AttributeName: "updatedAt",
+              AttributeType: "S",
+            },
+          ],
+          KeySchema: [
+            { AttributeName: "id", KeyType: "HASH" },
+            { AttributeName: "updatedAt", KeyType: "RANGE" },
+          ],
+          ProvisionedThroughput: {
+            WriteCapacityUnits: 1,
+            ReadCapacityUnits: 1,
+          },
+        },
+      },
     },
   },
 };
