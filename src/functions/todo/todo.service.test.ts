@@ -75,7 +75,7 @@ describe("Todo", () => {
       .withArgs({ Key: { id: "never_say_never" }, TableName: TableName })
       .returns(dbReturnValue(getItemFixture));
     sinonSandbox
-      .stub(DynamoDB.DocumentClient.prototype, "query")
+      .stub(DynamoDB.DocumentClient.prototype, "scan")
       .returns(dbReturnValue(listItemFixture));
 
     updateSpy = sinonSandbox
@@ -99,6 +99,7 @@ describe("Todo", () => {
   describe("#list()", () => {
     it("should return 3 items ", async () => {
       const todos = await todoService.list();
+
       assert.strictEqual(todos.length, 3);
     });
   });
@@ -119,16 +120,19 @@ describe("Todo", () => {
   });
   describe("#update(id:string,label:string|undefined,completed:boolean|undefined)", () => {
     it("Should return appropriate arguement without label", async () => {
-      const todo = await todoService.update("never_say_never", true);
+      await todoService.update("never_say_never", true);
       const expectedArg: DynamoDB.DocumentClient.UpdateItemInput = {
-        TableName: TableName,
-        Key: { id: "never_say_never" },
-        UpdateExpression: `SET updatedAt = :u, completed = :c`,
+        ExpressionAttributeNames: {
+          "#completed": "completed",
+          "#updatedAt": "updatedAt",
+        },
         ExpressionAttributeValues: {
-          ":u": todo.updatedAt,
           ":c": true,
         },
+        Key: { id: "never_say_never" },
         ReturnValues: "ALL_NEW",
+        TableName: TableName,
+        UpdateExpression: `set #updatedAt = :u, #completed = :c`,
       };
       //remove since new date is always created in update repo
       delete expectedArg.ExpressionAttributeValues[":u"];
@@ -146,7 +150,11 @@ describe("Todo", () => {
       const expectedArg: DynamoDB.DocumentClient.UpdateItemInput = {
         TableName: TableName,
         Key: { id: "never_say_never" },
-        UpdateExpression: `SET updatedAt = :u, label = :l`,
+        UpdateExpression: `set #updatedAt = :u, #label = :l`,
+        ExpressionAttributeNames: {
+          "#label": "label",
+          "#updatedAt": "updatedAt",
+        },
         ExpressionAttributeValues: {
           ":u": todo.updatedAt,
           ":l": "new note",
