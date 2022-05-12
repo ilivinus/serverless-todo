@@ -6,7 +6,7 @@ const serverlessConfiguration: AWS = {
   app: "aws-todo-http-api",
   service: "aws-todo-http-api",
   frameworkVersion: "3",
-  plugins: ["serverless-esbuild"],
+  plugins: ["serverless-esbuild", "serverless-plugin-test-helper"],
   provider: {
     name: "aws",
     runtime: "nodejs14.x",
@@ -65,15 +65,8 @@ const serverlessConfiguration: AWS = {
               AttributeName: "id",
               AttributeType: "S",
             },
-            {
-              AttributeName: "updatedAt",
-              AttributeType: "S",
-            },
           ],
-          KeySchema: [
-            { AttributeName: "id", KeyType: "HASH" },
-            { AttributeName: "updatedAt", KeyType: "RANGE" },
-          ],
+          KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
           ProvisionedThroughput: {
             WriteCapacityUnits: 1,
             ReadCapacityUnits: 1,
