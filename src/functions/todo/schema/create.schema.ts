@@ -1,8 +1,16 @@
-export default {
+const createSchema = {
   type: "object",
   properties: {
-    label: { type: "string" },
+    label: { type: "string", minLength: 3 },
   },
   required: ["label"],
 } as const;
-// id: string<uuid>, label: string, completed: boolean, createdAt: string<date>, updatedAt: string<date>
+
+export default createSchema;
+
+export const createValidationSchema = {
+  type: "object",
+  properties: {
+    body: createSchema,
+  },
+};

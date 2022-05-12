@@ -1,21 +1,34 @@
-export default {
+const updateSchema = {
   type: "object",
-  properties: {
-    id: { type: "string" },
-  },
-  required: ["completed", "label", "id"],
   anyOf: [
     {
       properties: {
+        id: { type: "string" },
         completed: { type: "boolean" },
       },
-      required: ["completed"],
+      required: ["id", "completed"],
     },
     {
       properties: {
-        label: { type: "string" },
+        id: { type: "string" },
+        label: { type: "string", minLength: 3 },
       },
-      required: ["label"],
+      required: ["id", "label"],
+    },
+    {
+      properties: {
+        id: { type: "string" },
+        completed: { type: "boolean" },
+        label: { type: "string", minLength: 3 },
+      },
+      required: ["id", "completed", "label"],
     },
   ],
+} as const;
+export default updateSchema;
+export const updateValidationSchema = {
+  type: "object",
+  properties: {
+    body: updateSchema,
+  },
 } as const;

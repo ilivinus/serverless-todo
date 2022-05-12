@@ -7,7 +7,7 @@ export default {
       {
         httpApi: {
           method: "post",
-          path: "todo",
+          path: "/todo",
         },
       },
     ],
@@ -18,7 +18,7 @@ export default {
       {
         httpApi: {
           method: "get",
-          path: "todo/{id}",
+          path: "/todo/{id}",
         },
       },
     ],
@@ -28,8 +28,8 @@ export default {
     events: [
       {
         httpApi: {
-          method: "update",
-          path: "todo",
+          method: "patch",
+          path: "/todo",
         },
       },
     ],
@@ -40,7 +40,7 @@ export default {
       {
         httpApi: {
           method: "delete",
-          path: "todo/{id}",
+          path: "/todo/{id}",
         },
       },
     ],
@@ -51,7 +51,7 @@ export default {
       {
         httpApi: {
           method: "get",
-          path: "todo",
+          path: "/todo",
         },
       },
     ],
